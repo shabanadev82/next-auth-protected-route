@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Form, Formik, useFormik } from 'formik';
 import * as Yup from 'yup';
@@ -10,54 +10,55 @@ import axios from 'axios';
 import { useRouter, useSearchParams } from 'next/navigation';
 // import { FaFacebook } from 'react-icons/fa';
 // import { FcGoogle } from 'react-icons/fc';
+import Image from 'next/image';
+import { signIn, useSession } from 'next-auth/react';
+import TextError from './TextError';
 
 const LoginComponent = () => {
   const router = useRouter();
-  const params = useSearchParams();
-
+  const session = useSession();
   useEffect(() => {
-    // if (params?.get("error") && params.get("error") != "") {
-    //   toast.error(params.get("error"), { theme: "colored" });
-    // }
-    console.log(params);
-    
-  }, [params]);
+    if (session?.status === "authenticated") {
+      router.replace("/dashboard");
+    }
+  }, [session, router]);
+
+  const params = useSearchParams();
 
   const initialValues: LoginProps = {
     email: '',
-    password:''
+    password: ''
   };
 
   const validationSchema = Yup.object({
     email: Yup.string()
-    .email('Invalid email format')
-    .required('Required'),
-  password: Yup.string()
-    .min(6, 'Password must be at least 6 characters')
-    .matches(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]/, 'Password must contain both letters and numbers')
-    .required('Required'),
-
+      .email('Invalid email format')
+      .required('Required'),
+    password: Yup.string()
+      .min(6, 'Password must be at least 6 characters')
+      .matches(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]/, 'Password must contain both letters and numbers')
+      .required('Required'),
   });
+
+  const [error, setError] = useState<string>("");
+
   const onSubmit = async (values: LoginProps) => {
-      try {
-        const response = await axios.post('api/auth/login',values)
-        .then(res =>{
-          if(res.status == 201){
-            router.push('/dashboard')
-          }
-        })
-        .catch(err => {
-          console.log('res error: ',err);
-          
-        })
-      } catch (error) {
-        console.log('error :',error);
-        
-      }
+    const res = await signIn("credentials", {
+      redirect: false,
+      ...values
+    });
+
+    if (res?.error) {
+      setError("Invalid email or password");
+    } else if (res?.url) {
+      router.replace('/dashboard');
+    } else {
+      setError("");
+    }
   };
+  
   return (
     <section className='bg-gray-300'>
-    {/* <Toast /> */}
       <div className="flex items-center justify-center px-4 py-10 sm:px-6 sm:py-16 lg:px-8 lg:py-24">
         <div className="w-fullxl:w-1/3 lg:w-1/3 md:w-1/3 mx-auto bg-white py-6 px-4 rounded-md shadow-md">
           <h2 className="text-3xl font-bold leading-tight text-black sm:text-4xl">
@@ -74,35 +75,37 @@ const LoginComponent = () => {
             </Link>
           </p>
           <Formik
-      initialValues={initialValues}
-      validationSchema={validationSchema}
-      onSubmit={onSubmit}
-    >
-      {formik => (
-      <Form className="mt-8">
-            <div className="space-y-5">
-              <div>
-                <ReusableInput label='Email Address' name="email"  />
-                <ReusableInput label='Password' name='password'   />                
-                <div className="text-right">
-                  <Link href="/forgot-password">Forgot password ?</Link>
-                </div> 
-              </div>
-              <div>
-                <button
-                  type="submit"
-                  className={`inline-flex w-full items-center justify-center rounded-md  px-3.5 py-2.5 font-semibold leading-7 text-white hover:bg-black/80 bg-black`}
-                >Login
-                </button>
-              </div>
-            </div>
-          </Form>
-      )}
-      </Formik>
+            initialValues={initialValues}
+            validationSchema={validationSchema}
+            onSubmit={onSubmit}
+          >
+            {formik => (
+              <Form className="mt-8">
+                <div className="space-y-5">
+                  <div>
+                    <ReusableInput label='Email Address' name="email" />
+                    <ReusableInput label='Password' name='password' />
+                    <div className="text-right">
+                      <Link href="/forgot-password">Forgot password ?</Link>
+                    </div>
+                  </div>
+                  <TextError>{error}</TextError>
+                  <div>
+                    <button
+                      type="submit"
+                      className={`inline-flex w-full items-center justify-center rounded-md  px-3.5 py-2.5 font-semibold leading-7 text-white hover:bg-black/80 bg-black`}
+                    >Login
+                    </button>
+                  </div>
+                </div>
+              </Form>
+            )}
+          </Formik>
           <p className="text-center my-3">-- OR --</p>
           <div className="space-y-3">
             <button
               type="button"
+              onClick={() => signIn('github')}
               className="relative inline-flex w-full items-center justify-center rounded-md border border-gray-400 bg-white px-3.5 py-2.5 font-semibold text-gray-700 transition-all duration-200 hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black focus:outline-none"
             >
               <span className="mr-2 inline-block">
@@ -119,27 +122,27 @@ const LoginComponent = () => {
             </button>
           </div>
 
-          {/* Google Login Button */}
           <div className="space-y-3 mt-3">
             <button
               type="button"
+              onClick={()=> signIn('google')}
               className="relative inline-flex w-full items-center justify-center rounded-md border border-gray-400 bg-white px-3.5 py-2.5 font-semibold text-gray-700 transition-all duration-200 hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black focus:outline-none"
             >
               <span className="mr-2 inline-block"></span>
-              {/* <Image
-                src="/google_icon.png"
+              <Image
+                src="/google-icon.png"
                 height={30}
                 width={30}
                 alt="Google Icon"
                 className="mr-3"
-              /> */}
+              />
               Sign in with Google
             </button>
           </div>
         </div>
       </div>
-  </section>
+    </section>
   )
 }
 
-export default LoginComponent
+export default LoginComponent;

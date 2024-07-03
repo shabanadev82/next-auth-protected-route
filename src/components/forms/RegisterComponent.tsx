@@ -8,9 +8,12 @@ import { Formik, Form } from 'formik';
 import ReusableInput from './ReusableInput';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
+import TextError from './TextError';
 
 const RegisterComponent = () => {
   const router = useRouter();
+ const [error, setError] = useState<string>("")
+  
   const initialValues: RegisterProps = {
     email: '',
     password: '',
@@ -44,7 +47,7 @@ const RegisterComponent = () => {
         }     
 })
     .catch(err => {
-        console.log('error',err)
+        setError(err);
 }
     )
   };
@@ -76,6 +79,7 @@ const RegisterComponent = () => {
         <ReusableInput name='email' label='Email' type='email' />
         <ReusableInput name='password' label='Password' type='password' />
         <ReusableInput name='password_confirmation' label='Confirm Password' type='password' />
+        <TextError>{error}</TextError>
         <div>
                   <button
                     type="submit"

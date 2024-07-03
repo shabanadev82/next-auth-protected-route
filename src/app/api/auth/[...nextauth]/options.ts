@@ -1,11 +1,11 @@
-
-import Credentials from "next-auth/providers/credentials";
+import CredentialsProvider from "next-auth/providers/credentials";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 import { AuthOptions, ISODateString, User as authUsers } from "next-auth";
 import User from "@/models/User";
 import { JWT } from "next-auth/jwt";
 import dbConnect from "@/lib/mongodb.config";
+import bcrypt from 'bcryptjs';
 
 export type CustomSession = {
   user?: CustomUser;
@@ -21,10 +21,7 @@ export type CustomUser = {
 };
 
 export const authOptions: AuthOptions = {
-  pages: {
-    signIn: "/login",
-  },
-
+  
   callbacks: {
     async signIn({ user, account, profile, email, credentials }) {
       dbConnect();
@@ -65,38 +62,47 @@ export const authOptions: AuthOptions = {
       return session;
     },
   },
-  providers: [
-    Credentials({
-      name: "Welcome Back",
-      type: "credentials",
 
+  providers: [
+    CredentialsProvider({
+      name: "Credentials",
       credentials: {
-        email: {
-          label: "Email",
-          type: "email",
-          placeholder: "Enter your email",
-        },
-        password: { label: "Password", type: "password" },
+        email: { label: "Email", type: "text" },
+        password: { label: "Password", type: "password" }
       },
-      async authorize(credentials, req) {
-        // * Connect to the MongoDb
-        dbConnect();
-        const user = await User.findOne({ email: credentials?.email });
-        if (user) {
-          return user;
-        } else {
+      async authorize(credentials) {
+        await dbConnect();
+        
+        // Validate the credentials
+        if (!credentials?.email || !credentials?.password) {
           return null;
         }
+        
+        // Find the user by email
+        const user = await User.findOne({ email: credentials.email });
+        if (!user) {
+          return null;
+        }
+        
+        const isValidPassword = await bcrypt.compare(credentials.password, user.password);
+        if (!isValidPassword) {
+          return null;
+        }        
+        return {
+          id: user._id.toString(),
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        };
       },
     }),
-    GithubProvider({
-      clientId: process.env.GITHUB_CLIENT_ID!,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET!,
-    }),
-
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+    }),
+    GithubProvider({
+      clientId: process.env.GITHUB_CLIENT_ID as string,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
     }),
     // ...add more providers here
   ],

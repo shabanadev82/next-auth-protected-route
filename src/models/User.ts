@@ -1,7 +1,10 @@
-import mongoose, { Schema, model, models } from 'mongoose'
+import mongoose, { Schema, model, models, Document } from 'mongoose';
 import { RegisterProps } from '@/data';
 
-const userSchema: Schema = new mongoose.Schema({
+// Interface for the user document
+interface IUser extends RegisterProps, Document {}
+
+const userSchema: Schema = new Schema({
     name: {
         type: String,
         required: true
@@ -9,13 +12,17 @@ const userSchema: Schema = new mongoose.Schema({
     email: {
         type: String,
         required: true,
-        unique:true
+        unique: true
     },
     password: {
         type: String,
-        required: true
     },
-}, { timestamps: true })
+    role: {
+        type: String,
+        default: "User"
+    }
+}, { timestamps: true });
 
-const User = models.user || model<RegisterProps>("user", userSchema)
+const User = models?.User || model<IUser>('User', userSchema);
+
 export default User;

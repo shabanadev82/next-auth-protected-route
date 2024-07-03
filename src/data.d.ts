@@ -3,6 +3,7 @@ export interface RegisterProps {
     name: string;
     password: string;
     password_confirmation: string;
+    role?: string;
 }
 export interface LoginProps {
     email: string;
