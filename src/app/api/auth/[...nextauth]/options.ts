@@ -18,6 +18,7 @@ export type CustomUser = {
   email?: string | null;
   role?: string | null;
   avatar?: string | null;
+  image?: string | null;
 };
 
 export const authOptions: AuthOptions = {

@@ -9,6 +9,7 @@ import ReusableInput from './ReusableInput';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import TextError from './TextError';
+import CustomBtn from './CustomBtn';
 
 const RegisterComponent = () => {
   const router = useRouter();
@@ -81,12 +82,9 @@ const RegisterComponent = () => {
         <ReusableInput name='password_confirmation' label='Confirm Password' type='password' />
         <TextError>{error}</TextError>
         <div>
-                  <button
-                    type="submit"
-                    className={`inline-flex w-full items-center justify-center rounded-md  px-3.5 py-2.5 font-semibold leading-7 text-white hover:bg-black/80 bg-black`}
-                  >
+                  <CustomBtn>
                     Create Account
-                  </button>
+                  </CustomBtn>
                 </div>
       </Form>
       )}

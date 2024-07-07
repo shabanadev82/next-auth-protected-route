@@ -10,6 +10,20 @@ export interface LoginProps {
     password: string;
 }
 
+export interface ForgotPasswordType {
+    email:string;
+}
+export interface ResetPasswordType {
+    password: string;
+    password_confirmation: string;
+  }
+  export interface ResetPasswordPayload {
+    email: string;
+    signature: string;
+    password: string;
+    password_confirmation: string;
+  }
+  
 export interface ErrorProps {
     children?: React.ReactNode;
 }
@@ -17,4 +31,5 @@ export interface FieldProps {
     label: string;
     name: string;
     type?: string;
+    placeholder?:string;
   }

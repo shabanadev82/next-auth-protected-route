@@ -20,6 +20,11 @@ const userSchema: Schema = new Schema({
     role: {
         type: String,
         default: "User"
+    },
+    password_reset_token:{
+        type:String,
+        required:false,
+        trim:true,
     }
 }, { timestamps: true });
 

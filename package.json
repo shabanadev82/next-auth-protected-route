@@ -9,15 +9,22 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@react-email/components": "0.0.21",
     "@types/bcryptjs": "^2.4.6",
+    "@types/nodemailer": "^6.4.15",
     "axios": "^1.7.2",
     "bcryptjs": "^2.4.3",
+    "crypto-random-string": "^5.0.0",
+    "cryptr": "^6.3.0",
     "formik": "^2.4.6",
     "mongoose": "^8.4.4",
     "next": "14.2.4",
     "next-auth": "^4.24.7",
+    "nodemailer": "^6.9.14",
     "react": "^18",
     "react-dom": "^18",
+    "react-email": "2.1.5",
+    "react-toastify": "^10.0.5",
     "yup": "^1.4.0"
   },
   "devDependencies": {

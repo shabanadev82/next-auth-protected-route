@@ -13,6 +13,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { signIn, useSession } from 'next-auth/react';
 import TextError from './TextError';
+import CustomBtn from './CustomBtn';
 
 const LoginComponent = () => {
   const router = useRouter();
@@ -22,8 +23,6 @@ const LoginComponent = () => {
       router.replace("/dashboard");
     }
   }, [session, router]);
-
-  const params = useSearchParams();
 
   const initialValues: LoginProps = {
     email: '',
@@ -44,23 +43,37 @@ const LoginComponent = () => {
 
   const onSubmit = async (values: LoginProps) => {
     const res = await signIn("credentials", {
-      redirect: false,
-      ...values
+      ...values,
+      callbackUrl: "/user-profile",
+      redirect: true,
     });
 
     if (res?.error) {
       setError("Invalid email or password");
-    } else if (res?.url) {
-      router.replace('/dashboard');
-    } else {
+    }else {
       setError("");
     }
+  };
+   // * Github signin
+   const githubSignIn = async () => {
+    await signIn("github", {
+      callbackUrl: "/user-profile",
+      redirect: true,
+    });
+  };
+
+  // * Google login
+  const googleLogin = async () => {
+    await signIn("google", {
+      callbackUrl: "/user-profile",
+      redirect: true,
+    });
   };
   
   return (
     <section className='bg-gray-300'>
       <div className="flex items-center justify-center px-4 py-10 sm:px-6 sm:py-16 lg:px-8 lg:py-24">
-        <div className="w-fullxl:w-1/3 lg:w-1/3 md:w-1/3 mx-auto bg-white py-6 px-4 rounded-md shadow-md">
+        <div className="mx-auto bg-white py-6 px-4 rounded-md shadow-md">
           <h2 className="text-3xl font-bold leading-tight text-black sm:text-4xl">
             Login
           </h2>
@@ -91,11 +104,8 @@ const LoginComponent = () => {
                   </div>
                   <TextError>{error}</TextError>
                   <div>
-                    <button
-                      type="submit"
-                      className={`inline-flex w-full items-center justify-center rounded-md  px-3.5 py-2.5 font-semibold leading-7 text-white hover:bg-black/80 bg-black`}
-                    >Login
-                    </button>
+                    <CustomBtn>Login
+                    </CustomBtn>
                   </div>
                 </div>
               </Form>
@@ -105,7 +115,7 @@ const LoginComponent = () => {
           <div className="space-y-3">
             <button
               type="button"
-              onClick={() => signIn('github')}
+              onClick={githubSignIn}
               className="relative inline-flex w-full items-center justify-center rounded-md border border-gray-400 bg-white px-3.5 py-2.5 font-semibold text-gray-700 transition-all duration-200 hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black focus:outline-none"
             >
               <span className="mr-2 inline-block">
@@ -125,7 +135,7 @@ const LoginComponent = () => {
           <div className="space-y-3 mt-3">
             <button
               type="button"
-              onClick={()=> signIn('google')}
+              onClick={googleLogin}
               className="relative inline-flex w-full items-center justify-center rounded-md border border-gray-400 bg-white px-3.5 py-2.5 font-semibold text-gray-700 transition-all duration-200 hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black focus:outline-none"
             >
               <span className="mr-2 inline-block"></span>
