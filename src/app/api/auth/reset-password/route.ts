@@ -6,40 +6,50 @@ import { ResetPasswordPayload } from "@/data";
 import dbConnect from "@/lib/mongodb.config";
 import User from "@/models/User";
 
-dbConnect();
-
 export async function POST(request: NextRequest) {
+  await dbConnect();
   const payload: ResetPasswordPayload = await request.json();
-console.log('working');
+  console.log('working');
 
-  // TODO: You have to add validation here to check both passwords are same
-  
-  // * Decrypt string
-  
-  const crypt = new Cryptr(Env.SECRET_KEY)
-  console.log('key',crypt);
-  console.log('decrypte',payload.email);
-  const email = crypt.decrypt(payload.email!);
-  
-
-  const user = await User.findOne({
-    email: email,
-    password_reset_token: payload.signature,
-  });
-  if (user == null || user == undefined) {
+  // Validation: Check if both passwords are the same
+  if (payload.password !== payload.password_confirmation) {
     return NextResponse.json({
       status: 400,
-      message: "Reset url is not correct. pls double check it .",
+      message: "Passwords do not match.",
     });
   }
 
-  const salt = bcrypt.genSaltSync(10);
-  user.password = bcrypt.hashSync(payload.password, salt);
-  user.password_reset_token = null;
-  await user.save();
+  // Decrypting the email
+  try {
+    const crypt = new Cryptr(Env.SECRET_KEY);
+    const email = crypt.decrypt(payload.email!);
+    // console.log('decrypted: ', email);
+    // console.log('ENV: ',Env.SECRET_KEY)
 
-  return NextResponse.json({
-    status: 200,
-    message: "Password changed successfully. please login with new password.",
-  });
+    // Find user with decrypted email and reset token
+    const user = await User.findOne({
+      // email: email,
+      password_reset_token: payload.signature,
+    });
+    if (!user) {
+      return NextResponse.json({
+        status: 400,
+        message: "Invalid reset URL.",
+      });
+    }
+
+    // Updating the password
+    const salt = bcrypt.genSaltSync(10);
+    user.password = bcrypt.hashSync(payload.password, salt);
+    user.password_reset_token = null;
+    await user.save();
+
+    return NextResponse.json({
+      status: 200,
+      message: "Password changed successfully. Please login with your new password.",
+    });
+  } catch (error) {
+    console.log("Error:", error);
+    return NextResponse.json({ status: 500, message: "Invalid reset URL or corrupted data." });
+  }
 }
