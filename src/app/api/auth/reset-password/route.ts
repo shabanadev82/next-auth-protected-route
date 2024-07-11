@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import Cryptr from "cryptr";
+import CryptoJS from "crypto-js";
 import Env from "@/config/env";
 import bcrypt from "bcryptjs";
 import { ResetPasswordPayload } from "@/data";
 import dbConnect from "@/lib/mongodb.config";
 import User from "@/models/User";
+import Cryptr from "cryptr";
+import { decryptEmail } from "@/config/action";
 
 export async function POST(request: NextRequest) {
   await dbConnect();
-  const payload: ResetPasswordPayload = await request.json();
-  console.log('working');
+  const payload = await request.json();
 
   // Validation: Check if both passwords are the same
   if (payload.password !== payload.password_confirmation) {
@@ -18,17 +19,21 @@ export async function POST(request: NextRequest) {
       message: "Passwords do not match.",
     });
   }
+  // const email = crypt.decrypt(payload.email!);
 
+  
   // Decrypting the email
   try {
     const crypt = new Cryptr(Env.SECRET_KEY);
-    const email = crypt.decrypt(payload.email!);
+    // const email = crypt.decrypt(payload.email!);
     // console.log('decrypted: ', email);
     // console.log('ENV: ',Env.SECRET_KEY)
-
-    // Find user with decrypted email and reset token
+    
+  const decrypted = await decryptEmail(payload.email)
+  // Find user with decrypted email and reset token
+    
     const user = await User.findOne({
-      // email: email,
+      email:decrypted,
       password_reset_token: payload.signature,
     });
     if (!user) {

@@ -6,15 +6,15 @@ import ReusableInput from "./ReusableInput";
 import { Formik, Form } from "formik";
 import CustomBtn from "./CustomBtn";
 import TextError from "./TextError";
-import { ForgotPasswordType, ResetPasswordType } from "@/data";
+import { ResetPasswordType } from "@/data";
 import * as Yup from 'yup';
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
-import {useSearchParams} from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
-const Password_Reset = ({params}:{params:{email:string}}) => {
+const Password_Reset = ({ params }: { params: { email: string } }) => {
   const searchParams = useSearchParams()
-  const initialValues:ResetPasswordType = {
+  const initialValues: ResetPasswordType = {
     password: '',
     password_confirmation: '',
   };
@@ -32,30 +32,30 @@ const Password_Reset = ({params}:{params:{email:string}}) => {
   const [error, setError] = useState<string>("");
 
   const onSubmit = async (values: ResetPasswordType) => {
-    console.log('values', values); 
-    await axios.post('/api/auth/reset-password',{
-        ...values,
-        email:params,
-        signature:searchParams.get("signature")
-    })  
-    .then(res=>{
-      const response = res.data;
-    //   if (response.status === 200) {
-    //     toast.success(response.message, { theme: "colored" });
-    //   } else if (response.status === 400) {
-    //     setError(response.errors);
-    //   } else if (response.status === 500) {
-    //     toast.success(response.message, { theme: "colored" });
-    //   }
+
+    await axios.post('/api/auth/reset-password', {
+      ...values,
+      email: params,
+      signature: searchParams.get("signature")
     })
-    .catch((err) => {
-      setError(err?.message)
-    });
-};
+      .then(res => {
+        const response = res.data;
+        if (response.status === 200) {
+          toast.success(response.message, { theme: "colored" });
+        } else if (response.status === 400) {
+          setError(response.errors);
+        } else if (response.status === 500) {
+          toast.success(response.message, { theme: "colored" });
+        }
+      })
+      .catch((err) => {
+        setError(err?.message)
+      });
+  };
 
   return (
     <>
-    <ToastContainer />
+      <ToastContainer />
       <div className="h-screen w-screen flex justify-center items-center">
         <div className="w-[500px] p-5 rounded-lg shadow-lg">
           <h1 className="text-2xl font-bold">Forgot Password ?</h1>
@@ -72,8 +72,8 @@ const Password_Reset = ({params}:{params:{email:string}}) => {
               <Form className="mt-8">
                 <div className="space-y-5">
                   <ReusableInput name='password' label='Password' type='password' />
-        <ReusableInput name='password_confirmation' label='Confirm Password' type='password' />
-        <TextError>{error}</TextError>        
+                  <ReusableInput name='password_confirmation' label='Confirm Password' type='password' />
+                  <TextError>{error}</TextError>
                   <div>
                     <CustomBtn>Reset Password</CustomBtn>
                   </div>

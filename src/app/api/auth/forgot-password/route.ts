@@ -8,10 +8,12 @@ import { render } from "@react-email/components";
 import ForgotPasswordEmail from "@/emails/ForgotPasswordEmail";
 import { sendEmail } from "@/config/mail";
 import dbConnect from "@/lib/mongodb.config";
+import CryptoJS from "crypto-js";
 
-dbConnect();
+const crypt = new Cryptr(Env.SECRET_KEY);
 
 export async function POST(request: NextRequest) {
+    await dbConnect();
     const payload: ForgotPasswordType = await request.json();
 
     // user exist
@@ -34,11 +36,11 @@ export async function POST(request: NextRequest) {
     await user.save();
     
     // encrypt user email 
-    const crypt = new Cryptr(Env.SECRET_KEY);
     const encryptedEmail = crypt.encrypt(user.email);
-    console.log("Encrypted Email:", encryptedEmail);
-    console.log('ENV: ',Env.SECRET_KEY)
-
+    // console.log("Encrypted Email:", encryptedEmail);
+    // console.log('ENV: ',Env.SECRET_KEY)
+    const encrypted = CryptoJS.AES.encrypt(user.email,Env.SECRET_KEY).toString();
+    
     const url = `${Env.APP_URL}/reset-password/${encryptedEmail}?signature=${randomStr}`;
     try {
         const html = render(ForgotPasswordEmail({
